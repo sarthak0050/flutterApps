@@ -1,84 +1,19 @@
-import 'dart:math';
-
+import 'package:calculator_app/calculator_view_model.dart';
 import 'package:calculator_app/custom_buttons.dart';
 import 'package:flutter/material.dart';
-import 'package:math_expressions/math_expressions.dart';
+import 'package:provider/provider.dart';
 
-class CalculatorScreen extends StatefulWidget {
-  const CalculatorScreen({super.key});
+class CalculatorView extends StatefulWidget {
+  const CalculatorView({super.key});
 
   @override
-  State<CalculatorScreen> createState() => _CalculatorScreenState();
+  State<CalculatorView> createState() => _CalculatorViewState();
 }
 
-class _CalculatorScreenState extends State<CalculatorScreen> {
-  ValueNotifier<String> equationNotifier = ValueNotifier("0");
-  ValueNotifier<String> resultNotifier = ValueNotifier("0");
-  String expression = "";
-
-  String doesContainDecimal(String result) {
-    if (result.toString().contains('.')) {
-      List<String> splitDecimal = result.toString().split('.');
-      if (!(int.parse(splitDecimal[1]) > 0)) {
-        return result = splitDecimal[0].toString();
-      }
-    }
-    return result;
-  }
-
-  void buttonPressed(String buttonText) {
-    // decimal k check
-    String equation = equationNotifier.value;
-    String result = resultNotifier.value;
-
-    if (buttonText == "AC") {
-      equation = "0";
-      result = "0";
-    } else if (buttonText == "⌫") {
-      equation = equation.substring(0, equation.length - 1);
-      if (equation == "") {
-        equation = "0";
-      }
-    } else if (buttonText == "+/-") {
-      if (equation[0] != '-' && equation[0] != "0") {
-        equation = '-$equation';
-      } else {
-        equation = equation.substring(1);
-      }
-    } else if (buttonText == "=") {
-      expression = equation;
-      expression = expression.replaceAll('×', '*');
-      expression = expression.replaceAll('÷', '/');
-      expression = expression.replaceAll('%', '%');
-
-      try {
-        Parser p = Parser();
-        Expression exp = p.parse(expression);
-
-        ContextModel cm = ContextModel();
-        result = '${exp.evaluate(EvaluationType.REAL, cm)}';
-        if (expression.contains('%')) {
-          result = doesContainDecimal(result);
-        }
-      } catch (e) {
-        result = "Error";
-      }
-    } else if (equation == "0" &&
-        (buttonText == "×" || buttonText == "÷" || buttonText == "+")) {
-      equation = "0";
-    } else {
-      if (equation == "0") {
-        equation = buttonText;
-      } else {
-        equation = equation + buttonText;
-      }
-    }
-    equationNotifier.value = equation;
-    resultNotifier.value = result;
-  }
-
+class _CalculatorViewState extends State<CalculatorView> {
   @override
   Widget build(BuildContext context) {
+    final vm = context.read<CalculatorViewModel>();
     return Scaffold(
         backgroundColor: Colors.black54,
         appBar: AppBar(
@@ -110,7 +45,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: ValueListenableBuilder(
-                                  valueListenable: resultNotifier,
+                                  valueListenable: vm.result,
                                   builder: (_, result, ___) {
                                     return Text(result,
                                         textAlign: TextAlign.left,
@@ -128,7 +63,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                           Padding(
                             padding: const EdgeInsets.all(20),
                             child: ValueListenableBuilder(
-                                valueListenable: equationNotifier,
+                                valueListenable: vm.equation,
                                 builder: (_, equation, ___) {
                                   return Text(equation,
                                       style: const TextStyle(
@@ -141,7 +76,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             icon: const Icon(Icons.backspace_outlined,
                                 color: Colors.orange, size: 30),
                             onPressed: () {
-                              buttonPressed("⌫");
+                              vm.buttonPressed("⌫");
                             },
                           ),
                           const SizedBox(width: 20),
@@ -154,10 +89,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  customButton('AC', Colors.white10, () => buttonPressed('AC')),
-                  customButton('%', Colors.white10, () => buttonPressed('%')),
-                  customButton('÷', Colors.white10, () => buttonPressed('÷')),
-                  customButton("×", Colors.white10, () => buttonPressed('×')),
+                  customButton(
+                      'AC', Colors.white10, () => vm.buttonPressed('AC')),
+                  customButton(
+                      '%', Colors.white10, () => vm.buttonPressed('%')),
+                  customButton(
+                      '÷', Colors.white10, () => vm.buttonPressed('÷')),
+                  customButton(
+                      "×", Colors.white10, () => vm.buttonPressed('×')),
                 ],
               ),
               const SizedBox(height: 10),
@@ -165,10 +104,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  customButton('7', Colors.white24, () => buttonPressed('7')),
-                  customButton('8', Colors.white24, () => buttonPressed('8')),
-                  customButton('9', Colors.white24, () => buttonPressed('9')),
-                  customButton('-', Colors.white10, () => buttonPressed('-')),
+                  customButton(
+                      '7', Colors.white24, () => vm.buttonPressed('7')),
+                  customButton(
+                      '8', Colors.white24, () => vm.buttonPressed('8')),
+                  customButton(
+                      '9', Colors.white24, () => vm.buttonPressed('9')),
+                  customButton(
+                      '-', Colors.white10, () => vm.buttonPressed('-')),
                 ],
               ),
               const SizedBox(height: 10),
@@ -176,10 +119,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  customButton('4', Colors.white24, () => buttonPressed('4')),
-                  customButton('5', Colors.white24, () => buttonPressed('5')),
-                  customButton('6', Colors.white24, () => buttonPressed('6')),
-                  customButton('+', Colors.white10, () => buttonPressed('+')),
+                  customButton(
+                      '4', Colors.white24, () => vm.buttonPressed('4')),
+                  customButton(
+                      '5', Colors.white24, () => vm.buttonPressed('5')),
+                  customButton(
+                      '6', Colors.white24, () => vm.buttonPressed('6')),
+                  customButton(
+                      '+', Colors.white10, () => vm.buttonPressed('+')),
                 ],
               ),
               const SizedBox(height: 10),
@@ -194,15 +141,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       Row(
                         children: [
                           customButton(
-                              '1', Colors.white24, () => buttonPressed('1')),
+                              '1', Colors.white24, () => vm.buttonPressed('1')),
                           SizedBox(
                               width: MediaQuery.of(context).size.width * 0.04),
                           customButton(
-                              '2', Colors.white24, () => buttonPressed('2')),
+                              '2', Colors.white24, () => vm.buttonPressed('2')),
                           SizedBox(
                               width: MediaQuery.of(context).size.width * 0.04),
                           customButton(
-                              '3', Colors.white24, () => buttonPressed('3')),
+                              '3', Colors.white24, () => vm.buttonPressed('3')),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -210,20 +157,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           customButton('+/-', Colors.white24,
-                              () => buttonPressed('+/-')),
+                              () => vm.buttonPressed('+/-')),
                           SizedBox(
                               width: MediaQuery.of(context).size.width * 0.04),
                           customButton(
-                              '0', Colors.white24, () => buttonPressed('0')),
+                              '0', Colors.white24, () => vm.buttonPressed('0')),
                           SizedBox(
                               width: MediaQuery.of(context).size.width * 0.04),
                           customButton(
-                              '.', Colors.white24, () => buttonPressed('.')),
+                              '.', Colors.white24, () => vm.buttonPressed('.')),
                         ],
                       ),
                     ],
                   ),
-                  customButton('=', Colors.orange, () => buttonPressed('=')),
+                  customButton('=', Colors.orange, () => vm.buttonPressed('=')),
                 ],
               )
             ],
